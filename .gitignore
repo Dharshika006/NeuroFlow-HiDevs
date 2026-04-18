@@ -1,0 +1,11 @@
+**pycache**/
+*.pyc
+.env
+node_modules/
+*.db
+chroma/
+mlruns/
+dist/
+build/
+.vscode/
+.DS_Store
