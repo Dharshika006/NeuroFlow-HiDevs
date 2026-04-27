@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     debug: bool = True
 
     class Config:
-        env_file = ".env"
+        env_file = "../.env"
         extra = "ignore"  # ignore extra variables
 
 settings = Settings()
