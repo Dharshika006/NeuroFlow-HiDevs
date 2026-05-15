@@ -1,5 +1,5 @@
 import asyncio
-from providers.gemini_provider import GeminiProvider
+from backend.providers.gemini_provider import GeminiProvider
 
 
 async def main():

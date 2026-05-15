@@ -30,3 +30,9 @@ mlruns/
 # Coverage
 .coverage
 htmlcov/
+
+.env
+__pycache__/
+*.pyc
+.venv/
+uploads/

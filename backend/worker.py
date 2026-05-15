@@ -1,6 +1,6 @@
 import asyncio
 import asyncpg
-from config import settings
+from backend.config import settings
 
 async def main():
     print("🚀 Worker started")

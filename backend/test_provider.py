@@ -1,6 +1,6 @@
 import asyncio
-from providers.openai_provider import OpenAIProvider
-from providers.base import ChatMessage
+from backend.providers.openai_provider import OpenAIProvider
+from backend.providers.base import ChatMessage
 
 
 async def main():

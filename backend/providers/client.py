@@ -7,13 +7,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from providers.router import ModelRouter, RoutingCriteria
-from providers.base import ChatMessage
-from providers.redis_client import RedisClient
+from backend.providers.router import ModelRouter, RoutingCriteria
+from backend.providers.base import ChatMessage
+from backend.providers.redis_client import RedisClient
 
 # ✅ add providers
-from providers.openai_provider import OpenAIProvider   # (your groq here)
-from providers.gemini_provider import GeminiProvider
+from backend.providers.openai_provider import OpenAIProvider   # (your groq here)
+from backend.providers.gemini_provider import GeminiProvider
 
 # ✅ OpenTelemetry
 from opentelemetry import trace

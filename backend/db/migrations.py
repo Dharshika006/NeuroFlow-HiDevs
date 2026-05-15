@@ -1,5 +1,5 @@
 import asyncpg
-from config import settings
+from backend.config import settings
 
 # Required tables for base schema
 REQUIRED_TABLES = {

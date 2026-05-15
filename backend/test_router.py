@@ -1,6 +1,6 @@
 import asyncio
-from providers.router import ModelRouter, RoutingCriteria, FallbackChain
-from providers.base import ChatMessage
+from backend.providers.router import ModelRouter, RoutingCriteria, FallbackChain
+from backend.providers.base import ChatMessage
 
 
 async def test_router():

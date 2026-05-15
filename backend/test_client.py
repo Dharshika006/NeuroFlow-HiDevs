@@ -1,9 +1,9 @@
 import asyncio
 import os
 import redis
-from providers.client import NeuroFlowClient
-from providers.base import ChatMessage
-from providers.router import RoutingCriteria
+from backend.providers.client import NeuroFlowClient
+from backend.providers.base import ChatMessage
+from backend.providers.router import RoutingCriteria
 from dotenv import load_dotenv
 load_dotenv()
 

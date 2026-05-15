@@ -8,9 +8,9 @@ from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 
 # Internal Imports
-from providers.router import ModelRouter, RoutingCriteria
-from providers.gemini_provider import GeminiProvider
-from providers.openai_provider import OpenAIProvider
+from backend.providers.router import ModelRouter, RoutingCriteria
+from backend.providers.gemini_provider import GeminiProvider
+from backend.providers.openai_provider import OpenAIProvider
 
 load_dotenv()
 

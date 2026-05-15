@@ -1,7 +1,7 @@
 import redis.asyncio as redis
 import httpx
-from config import settings
-from db.pool import get_pool
+from backend.config import settings
+from backend.db.pool import get_pool
 
 
 async def check_postgres():
