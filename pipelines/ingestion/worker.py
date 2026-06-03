@@ -7,10 +7,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import redis.asyncio as redis
+import asyncpg
 
 from arq.connections import RedisSettings
 
 from opentelemetry import trace
+
+from backend.db.embeddings import generate_embedding
 
 from pipelines.ingestion.extractors.pdf_extractor import extract_pdf
 from pipelines.ingestion.extractors.docx_extractor import extract_docx
@@ -26,7 +29,11 @@ logging.basicConfig(level=logging.INFO)
 tracer = trace.get_tracer(__name__)
 
 
-async def process_document(ctx, document_id: str, file_path: str):
+async def process_document(
+    ctx,
+    document_id: str,
+    file_path: str
+):
 
     redis_client = redis.Redis(
         host="localhost",
@@ -37,10 +44,19 @@ async def process_document(ctx, document_id: str, file_path: str):
 
     ext = os.path.splitext(file_path)[1].lower()
 
-    with tracer.start_as_current_span("ingestion.process") as span:
+    with tracer.start_as_current_span(
+        "ingestion.process"
+    ) as span:
 
-        span.set_attribute("document_id", document_id)
-        span.set_attribute("source_type", ext)
+        span.set_attribute(
+            "document_id",
+            document_id
+        )
+
+        span.set_attribute(
+            "source_type",
+            ext
+        )
 
         await redis_client.set(
             f"document:{document_id}:status",
@@ -67,7 +83,12 @@ async def process_document(ctx, document_id: str, file_path: str):
 
             pages = await extract_pptx(file_path)
 
-        elif ext in [".png", ".jpg", ".jpeg", ".webp"]:
+        elif ext in [
+            ".png",
+            ".jpg",
+            ".jpeg",
+            ".webp"
+        ]:
 
             pages = await extract_image(file_path)
 
@@ -81,16 +102,68 @@ async def process_document(ctx, document_id: str, file_path: str):
 
         chunks = chunk_pages(pages)
 
+        # =========================
+        # Database connection
+        # =========================
+
+        conn = await asyncpg.connect(
+            os.getenv("POSTGRES_URL")
+        )
+
+        # =========================
+        # Store chunks + embeddings
+        # =========================
+
+        for chunk in chunks:
+
+            embedding = generate_embedding(
+                chunk["content"]
+            )
+
+            # pgvector expects string format
+            embedding = str(embedding)
+
+            await conn.execute(
+                """
+                INSERT INTO chunks (
+                    content,
+                    metadata,
+                    embedding
+                )
+                VALUES ($1, $2, $3::vector)
+                """,
+                chunk["content"],
+                json.dumps(chunk["metadata"]),
+                embedding
+            )
+
+        await conn.close()
+
+        # =========================
+        # Metrics
+        # =========================
+
         page_count = len(pages)
 
         chunk_count = len(chunks)
 
-        span.set_attribute("page_count", page_count)
-        span.set_attribute("chunk_count", chunk_count)
-        span.set_attribute("embedding_calls", chunk_count)
+        span.set_attribute(
+            "page_count",
+            page_count
+        )
+
+        span.set_attribute(
+            "chunk_count",
+            chunk_count
+        )
+
+        span.set_attribute(
+            "embedding_calls",
+            chunk_count
+        )
 
         # =========================
-        # Save metrics/status
+        # Redis status
         # =========================
 
         await redis_client.set(
@@ -104,14 +177,14 @@ async def process_document(ctx, document_id: str, file_path: str):
         )
 
         # =========================
-        # Structured logs
+        # Structured logging
         # =========================
 
         logging.info(json.dumps({
             "event": "ingestion_complete",
             "document_id": document_id,
             "page_count": page_count,
-            "chunks": chunk_count
+            "chunk_count": chunk_count
         }))
 
         return {

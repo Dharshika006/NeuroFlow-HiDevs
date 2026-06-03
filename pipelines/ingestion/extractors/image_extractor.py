@@ -1,50 +1,30 @@
-import httpx
-import trafilatura
-
-from urllib.parse import urlparse
-from urllib.robotparser import RobotFileParser
+from PIL import Image
+import pytesseract
 
 from pipelines.ingestion.models import ExtractedPage
 
 
-async def extract_url(url: str):
+async def extract_image(file_path: str):
 
-    parsed = urlparse(url)
+    image = Image.open(file_path)
 
-    robots_url = f"{parsed.scheme}://{parsed.netloc}/robots.txt"
+    image.thumbnail((1024, 1024))
 
-    rp = RobotFileParser()
+    text = pytesseract.image_to_string(image)
 
-    rp.set_url(robots_url)
+    content = f"""
+Image OCR Content:
 
-    try:
-        rp.read()
-
-        allowed = rp.can_fetch("*", url)
-
-    except:
-        allowed = True
-
-    if not allowed:
-        raise Exception("Blocked by robots.txt")
-
-    async with httpx.AsyncClient() as client:
-
-        response = await client.get(url)
-
-    extracted = trafilatura.extract(
-        response.text,
-        include_tables=True
-    )
+{text}
+"""
 
     return [
         ExtractedPage(
             page_number=1,
-            content=extracted or "",
-            content_type="text",
+            content=content,
+            content_type="image",
             metadata={
-                "source": "url",
-                "url": url
+                "source": "image"
             }
         )
     ]
