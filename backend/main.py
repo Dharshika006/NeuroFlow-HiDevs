@@ -10,7 +10,13 @@ from backend.api.ratings import router as ratings_router
 from backend.db.pool import init_pool, close_pool
 from backend.db.health import check_postgres, check_redis, check_mlflow
 from backend.db.migrations import run_migrations
+from backend.api.pipelines import (
+    router as pipelines_router
+)
 
+from backend.api.compare import (
+    router as compare_router
+)
 # Import the router here (adjusted path)
 try:
     from backend.api.ingest import router as ingest_router
@@ -48,6 +54,9 @@ app.include_router(ingestion_router)
 app.include_router(ingestion_router)
 app.include_router(query_router)
 app.include_router(ratings_router)
+app.include_router(pipelines_router)
+
+app.include_router(compare_router)
 # OpenTelemetry instrumentation
 FastAPIInstrumentor.instrument_app(app)
 
