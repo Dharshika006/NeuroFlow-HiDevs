@@ -1,0 +1,8 @@
+[
+  {
+    "query": "What is HNSW?",
+    "answer": "HNSW is a vector indexing algorithm.",
+    "context": "HNSW is used for vector similarity search.",
+    "human_score": 0.95
+  }
+]
