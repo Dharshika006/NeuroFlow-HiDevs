@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi.responses import Response
 from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-
+from backend.api.query import router as query_router
 # Internal Imports - Ensure these paths match your folder structure
 from backend.db.pool import init_pool, close_pool
 from backend.db.health import check_postgres, check_redis, check_mlflow
@@ -45,7 +45,7 @@ app = FastAPI(
 )
 app.include_router(ingestion_router)
 app.include_router(ingestion_router)
-
+app.include_router(query_router)
 # OpenTelemetry instrumentation
 FastAPIInstrumentor.instrument_app(app)
 
