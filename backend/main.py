@@ -6,6 +6,9 @@ from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from backend.api.query import router as query_router
 from backend.api.ratings import router as ratings_router
+from backend.api.finetune import (
+    router as finetune_router
+)
 # Internal Imports - Ensure these paths match your folder structure
 from backend.db.pool import init_pool, close_pool
 from backend.db.health import check_postgres, check_redis, check_mlflow
@@ -55,7 +58,7 @@ app.include_router(ingestion_router)
 app.include_router(query_router)
 app.include_router(ratings_router)
 app.include_router(pipelines_router)
-
+app.include_router(finetune_router)
 app.include_router(compare_router)
 # OpenTelemetry instrumentation
 FastAPIInstrumentor.instrument_app(app)
