@@ -1,18 +1,31 @@
 import os
+
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from fastapi.responses import Response
-from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from backend.api.query import router as query_router
-from backend.api.ratings import router as ratings_router
+
+from prometheus_client import (
+    Counter,
+    generate_latest,
+    CONTENT_TYPE_LATEST
+)
+
+from opentelemetry.instrumentation.fastapi import (
+    FastAPIInstrumentor
+)
+
+from backend.api.query import (
+    router as query_router
+)
+
+from backend.api.ratings import (
+    router as ratings_router
+)
+
 from backend.api.finetune import (
     router as finetune_router
 )
-# Internal Imports - Ensure these paths match your folder structure
-from backend.db.pool import init_pool, close_pool
-from backend.db.health import check_postgres, check_redis, check_mlflow
-from backend.db.migrations import run_migrations
+
 from backend.api.pipelines import (
     router as pipelines_router
 )
@@ -20,79 +33,189 @@ from backend.api.pipelines import (
 from backend.api.compare import (
     router as compare_router
 )
-# Import the router here (adjusted path)
+
+from backend.db.pool import (
+    init_pool,
+    close_pool
+)
+
+from backend.db.health import (
+    check_postgres,
+    check_redis,
+    check_mlflow
+)
+
+from backend.db.migrations import (
+    run_migrations
+)
+
+from backend.resilience.circuit_breaker import (
+    CircuitBreaker
+)
+
 try:
-    from backend.api.ingest import router as ingest_router
+    from backend.api.ingest import (
+        router as ingest_router
+    )
 except ImportError:
-    from backend.api.ingest import router as ingest_router
+    from backend.api.ingest import (
+        router as ingest_router
+    )
+
+from pipelines.ingestion.api import (
+    router as ingestion_router
+)
+
 # =========================
 # Metrics
 # =========================
-REQUEST_COUNT = Counter("app_requests_total", "Total API Requests")
+
+REQUEST_COUNT = Counter(
+    "app_requests_total",
+    "Total API Requests"
+)
 
 # =========================
-# Lifespan (startup/shutdown)
+# Lifespan
 # =========================
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Initialize DB and run migrations
+
     await init_pool()
+
     await run_migrations()
+
     yield
 
-    # Shutdown: Clean up connections
     await close_pool()
 
 # =========================
-# App initialization
+# FastAPI App
 # =========================
-from pipelines.ingestion.api import router as ingestion_router
-from pipelines.ingestion.api import router as ingestion_router
+
 app = FastAPI(
+
     title="NeuroFlow API",
+
     version="1.0.0",
+
     lifespan=lifespan
 )
+
+# =========================
+# Routers
+# =========================
+
 app.include_router(ingestion_router)
-app.include_router(ingestion_router)
+
 app.include_router(query_router)
+
 app.include_router(ratings_router)
+
 app.include_router(pipelines_router)
+
 app.include_router(finetune_router)
+
 app.include_router(compare_router)
-# OpenTelemetry instrumentation
+
+app.include_router(
+    ingest_router,
+    prefix="/api/v1"
+)
+
+# =========================
+# OpenTelemetry
+# =========================
+
 FastAPIInstrumentor.instrument_app(app)
 
 # =========================
 # Routes
 # =========================
+
 @app.get("/")
 async def root():
-    return {"message": "NeuroFlow API running"}
+
+    return {
+        "message":
+        "NeuroFlow API running"
+    }
 
 @app.get("/health")
 async def health():
+
     REQUEST_COUNT.inc()
-    
-    # Run health checks concurrently for better performance
+
     postgres_status = await check_postgres()
+
     redis_status = await check_redis()
+
     mlflow_status = await check_mlflow()
 
-    overall = all([postgres_status, redis_status, mlflow_status])
+    openai_cb = CircuitBreaker(
+        "openai"
+    )
+
+    cb_state = await openai_cb.state()
+
+    cb_failures = await openai_cb.failure_count()
+
+    overall = all([
+        postgres_status,
+        redis_status,
+        mlflow_status
+    ])
 
     return {
-        "status": "ok" if overall else "degraded",
+
+        "status":
+
+            "degraded"
+
+            if cb_state == "open"
+
+            else (
+
+                "ok"
+
+                if overall
+
+                else "critical"
+            ),
+
         "checks": {
-            "postgres": postgres_status,
-            "redis": redis_status,
-            "mlflow": mlflow_status
+
+            "postgres":
+            postgres_status,
+
+            "redis":
+            redis_status,
+
+            "mlflow":
+            mlflow_status,
+
+            "circuit_breakers": {
+
+                "openai": {
+
+                    "state":
+                    cb_state,
+
+                    "failure_count":
+                    cb_failures
+                }
+            }
         }
     }
 
 @app.get("/metrics")
 async def metrics():
-    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
-# Include external routers
-app.include_router(ingest_router, prefix="/api/v1")
+    return Response(
+
+        generate_latest(),
+
+        media_type=
+        CONTENT_TYPE_LATEST
+    )

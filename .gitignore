@@ -59,3 +59,12 @@ training_data/
 
 # Model caches
 .cache/
+
+# Training data
+training_data/
+
+# Uploads
+uploads/
+
+# HuggingFace cache
+.cache/
