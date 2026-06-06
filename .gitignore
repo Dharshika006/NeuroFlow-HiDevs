@@ -68,3 +68,20 @@ uploads/
 
 # HuggingFace cache
 .cache/
+
+# Frontend
+frontend/.next/
+frontend/node_modules/
+
+# Training data
+training_data/
+
+# MLflow
+mlruns/
+
+# Python
+__pycache__/
+*.pyc
+
+# Environment
+.env

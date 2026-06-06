@@ -1,8 +1,9 @@
 import os
-
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from fastapi.responses import Response
+
 
 from prometheus_client import (
     Counter,
@@ -219,3 +220,26 @@ async def metrics():
         media_type=
         CONTENT_TYPE_LATEST
     )
+
+from backend.api.evaluations import (
+    router as evaluations_router
+)
+
+app.include_router(
+    evaluations_router
+)
+
+app.add_middleware(
+    CORSMiddleware,
+
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+    ],
+
+    allow_credentials=True,
+
+    allow_methods=["*"],
+
+    allow_headers=["*"],
+)
