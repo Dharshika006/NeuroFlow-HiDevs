@@ -30,3 +30,4 @@ async def stream_evaluations():
             await asyncio.sleep(10)
 
     return EventSourceResponse(generator())
+

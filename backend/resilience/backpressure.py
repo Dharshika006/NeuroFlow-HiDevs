@@ -1,5 +1,11 @@
-import redis.asyncio as redis
 import os
+
+import redis.asyncio as redis
+
+from backend.monitoring.metrics import (
+    queue_depth
+)
+
 
 async def check_ingestion_queue():
 
@@ -13,6 +19,9 @@ async def check_ingestion_queue():
     depth = await r.llen(
         "queue:ingest"
     )
+
+    # Update Prometheus Gauge
+    queue_depth.set(depth)
 
     if depth > 100:
 
@@ -45,5 +54,8 @@ async def check_ingestion_queue():
 
     return {
 
-        "status": 200
+        "status": 200,
+
+        "queue_depth":
+        depth
     }

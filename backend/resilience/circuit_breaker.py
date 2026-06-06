@@ -1,8 +1,14 @@
 import time
 import os
+
 import redis.asyncio as redis
 
 from contextlib import asynccontextmanager
+
+from backend.monitoring.metrics import (
+    circuit_breaker_trips,
+    active_circuit_breakers_open
+)
 
 
 class CircuitOpenError(Exception):
@@ -18,9 +24,13 @@ class CircuitBreaker:
         recovery_timeout=60,
         half_open_max_calls=3
     ):
+
         self.name = name
+
         self.failure_threshold = failure_threshold
+
         self.recovery_timeout = recovery_timeout
+
         self.half_open_max_calls = half_open_max_calls
 
         self.redis = redis.Redis(
@@ -31,14 +41,19 @@ class CircuitBreaker:
         )
 
     async def state(self):
+
         return await self.redis.get(
             f"circuit:{self.name}:state"
         ) or "closed"
 
     async def failure_count(self):
+
         return int(
+
             await self.redis.get(
+
                 f"circuit:{self.name}:failure_count"
+
             ) or 0
         )
 
@@ -77,6 +92,17 @@ class CircuitBreaker:
                 int(time.time())
             )
 
+            # Prometheus Metrics
+            circuit_breaker_trips.labels(
+                self.name
+            ).inc()
+
+            active_circuit_breakers_open.inc()
+
+    async def record_closed(self):
+
+        active_circuit_breakers_open.set(0)
+
     @asynccontextmanager
     async def protect(self):
 
@@ -85,12 +111,21 @@ class CircuitBreaker:
         if state == "open":
 
             opened = int(
+
                 await self.redis.get(
+
                     f"circuit:{self.name}:opened_at"
+
                 ) or 0
             )
 
-            if time.time() - opened > self.recovery_timeout:
+            if (
+
+                time.time() - opened
+
+                > self.recovery_timeout
+
+            ):
 
                 await self.redis.set(
                     f"circuit:{self.name}:state",
@@ -98,13 +133,18 @@ class CircuitBreaker:
                 )
 
             else:
-                raise CircuitOpenError(self.name)
+
+                raise CircuitOpenError(
+                    self.name
+                )
 
         try:
 
             yield
 
             await self.record_success()
+
+            await self.record_closed()
 
         except Exception:
 

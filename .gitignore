@@ -82,6 +82,55 @@ mlruns/
 # Python
 __pycache__/
 *.pyc
+*.pyc
+*.pyo
+*.pyd
+
+# Logs
+*.log
+logs/
+
+# VS Code
+.vscode/
+
+# Pytest
+.pytest_cache/
+
+# Coverage
+.coverage
+htmlcov/
+
+# MLflow
+mlruns/
+
+# Grafana
+grafana/grafana.db
+
+# Docker
+postgres_data/
+redis_data/
+
+# Next.js
+frontend/.next/
+frontend/node_modules/
+
+# OS Files
+.DS_Store
+Thumbs.db
 
 # Environment
 .env
+.next/
+node_modules/
+grafana.db/
+
+infra/mlflow/mlflow.db
+mlruns/
+
+# Grafana runtime data
+infra/grafana/grafana.db
+infra/grafana/plugins/
+infra/grafana/png/
+infra/grafana/pdf/
+infra/grafana/csv/
+infra/grafana/unified-search/

@@ -1,5 +1,6 @@
 import os
 import asyncio
+from pyexpat import model
 
 from groq import AsyncGroq
 
@@ -101,3 +102,30 @@ class GroqProvider:
                 await asyncio.sleep(
                     2 ** attempt
                 )
+
+
+from backend.monitoring.metrics import (
+    llm_calls_total
+)
+
+llm_calls_total.labels(
+    "groq",
+    model,
+    "generation"
+).inc()
+
+import time
+
+from backend.monitoring.metrics import (
+    generation_latency
+)
+
+start = time.time()
+
+# generation code
+
+generation_latency.labels(
+    model
+).observe(
+    time.time() - start
+)

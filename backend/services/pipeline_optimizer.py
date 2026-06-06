@@ -1,9 +1,12 @@
+from backend.services.anomaly_detector import (
+    is_anomaly
+)
+
+
 class PipelineOptimizer:
 
     def suggest(
-
         self,
-
         metrics
     ):
 
@@ -37,3 +40,12 @@ class PipelineOptimizer:
             )
 
         return suggestions
+
+    def detect_quality_anomaly(
+        self,
+        scores
+    ):
+
+        return is_anomaly(
+            scores
+        )
