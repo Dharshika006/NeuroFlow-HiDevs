@@ -3,7 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from fastapi.responses import Response
-
+from backend.api.auth import (
+    router as auth_router
+)
 
 from prometheus_client import (
     Counter,
@@ -66,6 +68,10 @@ except ImportError:
 from pipelines.ingestion.api import (
     router as ingestion_router
 )
+from backend.security.middleware import (
+    SecurityHeadersMiddleware
+)
+
 
 # =========================
 # Metrics
@@ -120,11 +126,15 @@ app.include_router(finetune_router)
 
 app.include_router(compare_router)
 
+app.include_router(auth_router)
+
 app.include_router(
     ingest_router,
     prefix="/api/v1"
 )
-
+app.add_middleware(
+    SecurityHeadersMiddleware
+)
 # =========================
 # OpenTelemetry
 # =========================

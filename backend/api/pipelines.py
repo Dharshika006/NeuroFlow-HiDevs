@@ -2,7 +2,11 @@ import os
 import asyncpg
 
 from fastapi import APIRouter
+from fastapi import Depends
 
+from backend.security.auth import (
+    require_scope
+)
 from dotenv import load_dotenv
 
 from backend.models.pipeline import (
@@ -435,4 +439,22 @@ async def suggestions(
 
         "suggestions":
         optimizer.suggest(metrics)
+    }
+
+@router.post("/pipelines")
+async def create_pipeline(
+
+    payload: dict,
+
+    user=Depends(
+        require_scope(
+            "admin"
+        )
+    )
+):
+
+    # Implement pipeline creation logic here
+
+    return {
+        "message": "Pipeline created successfully"
     }

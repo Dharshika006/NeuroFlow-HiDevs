@@ -1,9 +1,16 @@
 import os
 import asyncpg
 
-from fastapi import APIRouter
+from fastapi import (
+    APIRouter,
+    Depends
+)
 
 from dotenv import load_dotenv
+
+from backend.security.auth import (
+    require_scope
+)
 
 from pipelines.finetuning.extractor import (
     TrainingExtractor
@@ -37,7 +44,14 @@ async def connect():
 # =====================================================
 
 @router.post("/finetune/jobs")
-async def create_job():
+async def create_job(
+
+    user=Depends(
+        require_scope(
+            "admin"
+        )
+    )
+):
 
     extractor = TrainingExtractor()
 
@@ -103,7 +117,8 @@ async def create_job():
 
     return {
 
-        "job_id": job_id,
+        "job_id":
+        job_id,
 
         "provider_job_id":
         provider_job_id
@@ -164,6 +179,14 @@ async def get_job(
 
     await conn.close()
 
+    if not row:
+
+        return {
+
+            "error":
+            "job_not_found"
+        }
+
     return dict(row)
 
 
@@ -179,6 +202,12 @@ async def preview():
     result = await extractor.extract()
 
     return result["pairs"][:5]
+
+
+# =====================================================
+# DPO PREVIEW
+# =====================================================
+
 @router.get("/finetune/dpo-preview")
 async def dpo_preview():
 
@@ -187,3 +216,45 @@ async def dpo_preview():
     pairs = await extractor.extract_dpo_pairs()
 
     return pairs[:5]
+
+
+# =====================================================
+# CHECK FINETUNE STATUS
+# =====================================================
+
+@router.post("/finetune")
+async def finetune(
+
+    payload: dict,
+
+    user=Depends(
+        require_scope(
+            "admin"
+        )
+    )
+):
+
+    job_id = payload.get(
+        "job_id"
+    )
+
+    if not job_id:
+
+        return {
+
+            "error":
+            "job_id is required"
+        }
+
+    status = await poll_job_status(
+        job_id
+    )
+
+    return {
+
+        "job_id":
+        job_id,
+
+        "status":
+        status
+    }

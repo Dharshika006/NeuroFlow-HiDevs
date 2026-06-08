@@ -2,15 +2,38 @@ import json
 import asyncio
 import time
 
-from fastapi import APIRouter
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException
+)
 
-from sse_starlette.sse import EventSourceResponse
+from sse_starlette.sse import (
+    EventSourceResponse
+)
 
-from pipelines.retrieval.pipeline import RetrievalPipeline
-from pipelines.generation.generator import Generator
+from pipelines.retrieval.pipeline import (
+    RetrievalPipeline
+)
+
+from pipelines.generation.generator import (
+    Generator
+)
 
 from backend.monitoring.metrics import (
     queries_total
+)
+
+from backend.security.auth import (
+    require_scope
+)
+
+from backend.security.sanitizer import (
+    sanitize_text
+)
+
+from backend.security.prompt_injection import (
+    detect_prompt_injection
 )
 
 router = APIRouter()
@@ -21,9 +44,53 @@ generator = Generator()
 
 
 @router.post("/query")
-async def query(payload: dict):
+async def query(
 
-    query_text = payload["query"]
+    payload: dict,
+
+    user=Depends(
+        require_scope(
+            "query"
+        )
+    )
+):
+
+    query_text = sanitize_text(
+
+        payload["query"]
+    )
+
+    injection = detect_prompt_injection(
+        query_text
+    )
+
+    if injection[
+        "prompt_injection_detected"
+    ]:
+
+        raise HTTPException(
+
+            status_code=400,
+
+            detail={
+
+                "error":
+                "query_rejected",
+
+                "reason":
+                "potential_prompt_injection"
+            }
+        )
+
+    if len(query_text) > 5000:
+
+        raise HTTPException(
+
+            status_code=400,
+
+            detail=
+            "Query exceeds 5000 characters"
+        )
 
     pipeline_id = payload.get(
         "pipeline_id",
@@ -33,27 +100,41 @@ async def query(payload: dict):
     try:
 
         queries_total.labels(
+
             pipeline_id,
+
             "success"
+
         ).inc()
 
         return {
-            "status": "ready",
-            "query": query_text
+
+            "status":
+            "ready",
+
+            "query":
+            query_text
         }
 
     except Exception:
 
         queries_total.labels(
+
             pipeline_id,
+
             "error"
+
         ).inc()
 
         raise
 
 
-@router.get("/query/{query_text}/stream")
-async def stream(query_text: str):
+@router.get(
+    "/query/{query_text}/stream"
+)
+async def stream(
+    query_text: str
+):
 
     async def event_generator():
 
@@ -61,7 +142,8 @@ async def stream(query_text: str):
 
         yield {
             "data": json.dumps({
-                "type": "retrieval_start"
+                "type":
+                "retrieval_start"
             })
         }
 
@@ -71,11 +153,21 @@ async def stream(query_text: str):
 
         yield {
             "data": json.dumps({
-                "type": "retrieval_complete",
-                "chunk_count": len(
-                    retrieval["chunks_used"]
+
+                "type":
+                "retrieval_complete",
+
+                "chunk_count":
+                len(
+                    retrieval[
+                        "chunks_used"
+                    ]
                 ),
-                "sources": retrieval["sources"]
+
+                "sources":
+                retrieval[
+                    "sources"
+                ]
             })
         }
 
@@ -93,14 +185,17 @@ async def stream(query_text: str):
 
                 yield {
                     "data": json.dumps({
-                        "type": "keepalive"
+                        "type":
+                        "keepalive"
                     })
                 }
 
                 last_keepalive = now
 
             yield {
-                "data": json.dumps(event)
+                "data": json.dumps(
+                    event
+                )
             }
 
             await asyncio.sleep(0)

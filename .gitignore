@@ -134,3 +134,30 @@ infra/grafana/png/
 infra/grafana/pdf/
 infra/grafana/csv/
 infra/grafana/unified-search/
+
+grafana.db
+mlflow.db
+__pycache__/
+*.pyc
+uploads/
+
+# Coverage
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Node
+node_modules/
+
+# Build
+dist/
+build/
+
+# Docker
+*.pid
+
+plugins/
+unified-search/
+.secrets.baseline
