@@ -1,0 +1,61 @@
+services:
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  api:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+      target: runtime
+
+    restart: unless-stopped
+
+    ports:
+      - "8001:8000"
+
+    read_only: true
+
+    tmpfs:
+      - /tmp
+
+    security_opt:
+      - no-new-privileges:true
+
+    cap_drop:
+      - ALL
+
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  worker:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+      target: runtime
+
+    command: python -m worker
+
+    restart: unless-stopped
+
+    deploy:
+      resources:
+        limits:
+          memory: 2g
