@@ -1,0 +1,7 @@
+{
+  "users": 50,
+  "duration_minutes": 5,
+  "p95_latency_seconds": 1.8,
+  "error_rate_percent": 0.0,
+  "status": "passed"
+}
