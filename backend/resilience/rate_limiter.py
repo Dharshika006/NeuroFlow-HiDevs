@@ -1,4 +1,3 @@
-import time
 import os
 import redis.asyncio as redis
 

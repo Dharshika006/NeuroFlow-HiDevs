@@ -1,8 +1,10 @@
-import os
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from fastapi.responses import Response
+from backend.api.evaluations import (
+    router as evaluations_router
+)
 from backend.api.auth import (
     router as auth_router
 )
@@ -135,6 +137,10 @@ app.include_router(
 app.add_middleware(
     SecurityHeadersMiddleware
 )
+
+app.include_router(
+    evaluations_router
+)
 # =========================
 # OpenTelemetry
 # =========================
@@ -230,14 +236,6 @@ async def metrics():
         media_type=
         CONTENT_TYPE_LATEST
     )
-
-from backend.api.evaluations import (
-    router as evaluations_router
-)
-
-app.include_router(
-    evaluations_router
-)
 
 app.add_middleware(
     CORSMiddleware,

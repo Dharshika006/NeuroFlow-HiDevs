@@ -1,10 +1,8 @@
 import asyncio
-import os
 from dotenv import load_dotenv
 
 # Import the client and the criteria dataclass
 from backend.providers.client1 import NeuroFlowClient
-from backend.providers.router import RoutingCriteria
 
 load_dotenv()
 

@@ -1,6 +1,5 @@
 import redis.asyncio as redis
 import os
-from redis import asyncio as aioredis
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -17,7 +16,6 @@ class RedisClient:
             )
         return cls._client
     
-import redis.asyncio as redis
 
 def get_redis():
     return redis.Redis(

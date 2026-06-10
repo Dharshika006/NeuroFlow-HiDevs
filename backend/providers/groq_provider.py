@@ -1,9 +1,8 @@
 import os
 import asyncio
-from pyexpat import model
+import time
 
 from groq import AsyncGroq
-
 from dotenv import load_dotenv
 
 from backend.resilience.circuit_breaker import (
@@ -12,6 +11,11 @@ from backend.resilience.circuit_breaker import (
 
 from backend.resilience.timeout_manager import (
     TimeoutManager
+)
+
+from backend.monitoring.metrics import (
+    llm_calls_total,
+    generation_latency
 )
 
 load_dotenv()
@@ -34,14 +38,13 @@ class GroqProvider:
         self.timeout_manager = TimeoutManager()
 
     async def stream(
-
         self,
-
         prompt
-
     ):
 
         retries = 3
+
+        model_name = "llama3-8b-8192"
 
         for attempt in range(retries):
 
@@ -49,17 +52,23 @@ class GroqProvider:
 
                 async with self.circuit_breaker.protect():
 
+                    llm_calls_total.labels(
+                        "groq",
+                        model_name,
+                        "generation"
+                    ).inc()
+
+                    start = time.time()
+
                     stream = await self.timeout_manager.run(
 
                         self.client.chat.completions.create(
 
-                            model="llama3-8b-8192",
+                            model=model_name,
 
                             messages=[
-
                                 {
                                     "role": "user",
-
                                     "content": prompt
                                 }
                             ],
@@ -75,7 +84,6 @@ class GroqProvider:
                     async for chunk in stream:
 
                         delta = (
-
                             chunk.choices[0]
                             .delta
                             .content
@@ -84,6 +92,12 @@ class GroqProvider:
                         if delta:
 
                             yield delta
+
+                    generation_latency.labels(
+                        model_name
+                    ).observe(
+                        time.time() - start
+                    )
 
                     return
 
@@ -102,30 +116,3 @@ class GroqProvider:
                 await asyncio.sleep(
                     2 ** attempt
                 )
-
-
-from backend.monitoring.metrics import (
-    llm_calls_total
-)
-
-llm_calls_total.labels(
-    "groq",
-    model,
-    "generation"
-).inc()
-
-import time
-
-from backend.monitoring.metrics import (
-    generation_latency
-)
-
-start = time.time()
-
-# generation code
-
-generation_latency.labels(
-    model
-).observe(
-    time.time() - start
-)

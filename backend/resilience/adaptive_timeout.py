@@ -1,6 +1,5 @@
 import os
 import time
-import statistics
 
 import redis.asyncio as redis
 

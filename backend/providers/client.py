@@ -1,12 +1,7 @@
 import time
 import os
 import redis.asyncio as redis
-from redis import asyncio as aioredis
 from typing import List
-from dotenv import load_dotenv
-
-load_dotenv()
-
 from backend.providers.router import ModelRouter, RoutingCriteria
 from backend.providers.base import ChatMessage
 from backend.providers.redis_client import RedisClient
@@ -17,6 +12,10 @@ from backend.providers.gemini_provider import GeminiProvider
 
 # ✅ OpenTelemetry
 from opentelemetry import trace
+
+from dotenv import load_dotenv
+
+load_dotenv()
 tracer = trace.get_tracer(__name__)
 
 
@@ -62,7 +61,7 @@ class NeuroFlowClient:
                     output += token
                     yield token
 
-            except Exception as e:
+            except Exception:
                 print("[Fallback] Switching provider...")
 
                 # fallback to gemini
@@ -118,7 +117,6 @@ class NeuroFlowClient:
     async def _update_metrics(self, model_name: str, cost: float):
         await self.redis.incr(f"metrics:model:{model_name}:calls")
         await self.redis.incrbyfloat(f"metrics:model:{model_name}:cost_usd", cost)
-import redis.asyncio as redis
 
 def get_redis():
     return redis.Redis(
