@@ -161,3 +161,6 @@ build/
 plugins/
 unified-search/
 .secrets.baseline
+
+.pytest_cache/
+coverage.xml

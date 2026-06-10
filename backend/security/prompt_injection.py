@@ -2,21 +2,14 @@ import re
 
 
 INJECTION_PATTERNS = [
-
-    r"ignore (all |previous |the |your )?instructions",
-
+    # Matches "ignore" followed by any combination of modifiers and spaces, ending in "instructions"
+    r"ignore\s+(?:all\s+|previous\s+|the\s+|your\s+)*instructions",
     r"you are now",
-
-    r"new (system |)prompt",
-
-    r"disregard (the |all |previous )",
-
-    r"forget (everything|all|previous)",
-
-    r"act as (if |a |an )",
-
+    r"new\s+(?:system\s+)?prompt",
+    r"disregard\s+(?:the\s+|all\s+|previous\s+)*",
+    r"forget\s+(?:everything|all|previous)",
+    r"act as\s+(?:if\s+|a\s+|an\s+)?",
     r"\[\[(system|SYSTEM)\]\]",
-
     r"<\|system\|>"
 ]
 

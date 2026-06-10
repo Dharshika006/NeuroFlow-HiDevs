@@ -20,3 +20,4 @@ async def test_prompt_injection():
         )
 
     assert response.status_code == 401
+
