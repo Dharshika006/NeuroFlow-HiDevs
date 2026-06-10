@@ -6,8 +6,8 @@ async def main():
     print("🚀 Worker started")
 
     try:
-        conn = await asyncpg.connect(settings.postgres_url)
-        print("✅ Connected to Postgres")
+        await asyncpg.connect(settings.postgres_url)
+        print("Connected to Postgres")
 
         while True:
             print("⏳ Worker running...")
