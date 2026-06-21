@@ -3,7 +3,10 @@ import re
 
 class QueryProcessor:
 
-    async def expand_query(self, query: str):
+    async def expand_query(
+        self,
+        query: str
+    ):
 
         expansions = [
             query,
@@ -13,21 +16,34 @@ class QueryProcessor:
 
         return expansions
 
-    async def extract_metadata_filters(self, query: str):
+    async def extract_metadata_filters(
+        self,
+        query: str
+    ):
 
-        filters = {}
+        filters: dict[str, object] = {}
 
-        year_match = re.search(r"\b(20\d{2})\b", query)
+        year_match = re.search(
+            r"\b(20\d{2})\b",
+            query
+        )
 
         if year_match:
-            filters["year"] = int(year_match.group(1))
+
+            filters["year"] = int(
+                year_match.group(1)
+            )
 
         if "climate" in query.lower():
+
             filters["topic"] = "climate"
 
         return filters
 
-    async def classify_query(self, query: str):
+    async def classify_query(
+        self,
+        query: str
+    ):
 
         q = query.lower()
 

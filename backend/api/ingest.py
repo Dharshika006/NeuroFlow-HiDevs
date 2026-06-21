@@ -115,10 +115,11 @@ async def ingest(
     document_id = str(
         uuid.uuid4()
     )
-
+    
+    filename = file.filename or "uploaded_file"
     file_path = os.path.join(
         UPLOAD_DIR,
-        file.filename
+        filename
     )
 
     with open(
@@ -150,7 +151,7 @@ async def ingest(
             file_path,
 
             "source_type":
-            file.filename.split(".")[-1]
+            filename.split(".")[-1]
         }
     )
 

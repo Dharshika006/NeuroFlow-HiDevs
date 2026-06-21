@@ -1,5 +1,6 @@
+import os
 from datetime import datetime, timedelta
-
+from typing import Sequence
 from jose import jwt, JWTError
 
 from fastapi import (
@@ -8,7 +9,10 @@ from fastapi import (
     Header
 )
 
-SECRET_KEY = "neuroflow-secret-key"
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+
+if not SECRET_KEY:
+    raise ValueError("JWT_SECRET_KEY not configured")
 
 ALGORITHM = "HS256"
 
@@ -41,7 +45,7 @@ def create_access_token(
 
     client_id: str,
 
-    scopes: list
+    scopes: Sequence[str]
 
 ):
 
@@ -53,7 +57,7 @@ def create_access_token(
 
         "sub": client_id,
 
-        "scopes": scopes,
+        "scopes": list(scopes),
 
         "exp": expire
     }
@@ -153,4 +157,4 @@ def require_scope(scope: str):
 
         return user
 
-    return checker
+    return checker 

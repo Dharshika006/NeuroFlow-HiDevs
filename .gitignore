@@ -164,3 +164,4 @@ unified-search/
 
 .pytest_cache/
 coverage.xml
+.ruff_cache/

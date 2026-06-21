@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import DefaultDict
 
 
 def reciprocal_rank_fusion(
@@ -6,7 +7,7 @@ def reciprocal_rank_fusion(
     k: int = 60
 ):
 
-    scores = defaultdict(float)
+    scores: DefaultDict[str, float] = defaultdict(float)
 
     chunk_map = {}
 

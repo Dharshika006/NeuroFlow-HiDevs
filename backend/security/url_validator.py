@@ -22,6 +22,9 @@ def validate_url(
 
         host = parsed.hostname
 
+        if not host:
+            return False
+
         if host in [
 
             "localhost",
