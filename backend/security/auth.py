@@ -3,14 +3,12 @@ from datetime import datetime, timedelta
 from typing import Sequence
 from jose import jwt, JWTError
 from dotenv import load_dotenv
-
-load_dotenv()
 from fastapi import (
     Depends,
     HTTPException,
     Header
 )
-
+load_dotenv()
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 
 if not SECRET_KEY:
