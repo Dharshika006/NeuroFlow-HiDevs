@@ -6,13 +6,9 @@ WORKDIR /app
 
 COPY . .
 
-RUN pip install --no-cache-dir \
-    fastapi \
-    uvicorn \
-    asyncpg \
-    pydantic-settings \
-    redis
+COPY requirements.txt .
 
+RUN pip install --no-cache-dir -r requirements.txt
 # Stage 2 - Runtime
 
 FROM python:3.12-slim AS runtime
