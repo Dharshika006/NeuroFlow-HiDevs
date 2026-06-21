@@ -67,7 +67,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./backend/Dockerfile
+          file: ./Dockerfile
           push: False # Set to false for testing, change to true when ready to push
           # Hardcoded with your specific account name 'dharshika006' and matching your image tags
           tags: |
