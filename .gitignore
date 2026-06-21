@@ -14,6 +14,7 @@ build/
 venv/
 Thumbs.db
 
+.mypy_cache/
 # Jupyter
 .ipynb_checkpoints/
 

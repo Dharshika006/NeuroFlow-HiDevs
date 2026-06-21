@@ -2,7 +2,9 @@ import os
 from datetime import datetime, timedelta
 from typing import Sequence
 from jose import jwt, JWTError
+from dotenv import load_dotenv
 
+load_dotenv()
 from fastapi import (
     Depends,
     HTTPException,
