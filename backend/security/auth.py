@@ -21,7 +21,9 @@ CLIENTS = {
 
     "admin": {
 
-        "secret": "admin123",
+        "secret": os.getenv(
+            "ADMIN_CLIENT_SECRET"
+        ),
 
         "scopes": [
             "query",
@@ -32,7 +34,9 @@ CLIENTS = {
 
     "client": {
 
-        "secret": "client123",
+        "secret": os.getenv(
+            "CLIENT_CLIENT_SECRET"
+        ),
 
         "scopes": [
             "query"
