@@ -4,18 +4,19 @@ FROM python:3.12-slim AS deps
 
 WORKDIR /app
 
-COPY . .
 
 COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
 # Stage 2 - Runtime
 
 FROM python:3.12-slim AS runtime
 
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-RUN groupadd -r neuroflow && useradd -r -g neuroflow neuroflow
+RUN groupadd -r neuroflow && useradd -r -m -g neuroflow neuroflow
 
 RUN apt-get update && apt-get install -y \
     libmagic1 \
@@ -31,7 +32,13 @@ COPY --from=deps /usr/local/bin /usr/local/bin
 
 COPY . .
 
-RUN chown -R neuroflow:neuroflow /app
+RUN chown -R neuroflow:neuroflow /app /home/neuroflow
+RUN mkdir -p /home/neuroflow/.cache/huggingface \
+    && chown -R neuroflow:neuroflow /home/neuroflow
+
+ENV HOME=/home/neuroflow
+ENV HF_HOME=/home/neuroflow/.cache/huggingface
+ENV TRANSFORMERS_CACHE=/home/neuroflow/.cache/huggingface
 
 USER neuroflow
 
